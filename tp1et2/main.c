@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-
 int equals(double x, double y, double z)
 {
     return (x + (y + z) == (x + y) + z);
@@ -60,6 +59,14 @@ int main()
         tests[i] = test();
         sum += tests[i];
     }
-    printf("Moyenne = %f\n", sum/100.0);
-    return 0;
+    FILE* f = fopen("answer_associativity.txt", "w");
+    if (f == NULL)
+    {
+        perror("fopen");
+        exit(EXIT_FAILURE);
+    }
+    fprintf(f, "%f\n", sum/100.0);
+    fclose(f);
+    //printf("Moyenne = %f\n", sum/100.0);
+    return EXIT_SUCCESS;
 }

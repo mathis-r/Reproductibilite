@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-
 double nyear(double n, double val)
 {
     return n*val;
@@ -17,6 +16,14 @@ int main()
         argent = nyear(i,argent);
     }
     argent -=1;
-    printf("Argent : %f\n", argent);
+    FILE* f = fopen("answer_banking.txt","w");
+    if (f == NULL)
+    {
+        perror("fopen");
+        exit(EXIT_FAILURE);
+    }
+    fprintf(f,"%f\n",argent);
+    fclose(f);
+    //printf("Argent : %f\n", argent);
     return 0;
 }

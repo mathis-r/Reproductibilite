@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import random
 import sys
 
@@ -20,7 +21,9 @@ def main():
     tests =[]
     for i in range(100):
         tests.append(test())
-    print(sum(tests)/len(tests))
+    with open("answer_associativity.txt", "w") as f:
+        f.write(str(sum(tests)/len(tests))+"\n")
+    #print(sum(tests)/len(tests))
     return 0
 
 if __name__ == "__main__":

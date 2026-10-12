@@ -3,7 +3,10 @@ project(tp1 C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(tp1
+add_executable(main
         main.c
-        #banking.c
+)
+
+add_executable(banking
+        banking.c
 )
