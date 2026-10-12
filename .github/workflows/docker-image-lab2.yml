@@ -15,8 +15,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the Docker image for C
-      working-directory: ./tp1et2/c
-      run: docker build . --file tp1et2/c/Dockerfile --tag lab2-c:$(date +%s)
+      run: docker build ./tp1et2/c --file tp1et2/c/Dockerfile --tag lab2-c:$(date +%s)
     - name: Build the Docker image for Python
-      working-directory: ./tp1et2/python
-      run: docker build . --file tp1et2/python/Dockerfile --tag lab2-python:$(date +%s)
+      run: docker build ./tp1et2/python --file tp1et2/python/Dockerfile --tag lab2-python:$(date +%s)
