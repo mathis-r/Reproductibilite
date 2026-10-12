@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/local/bin/python3
 import random
 import sys
 
@@ -21,7 +21,7 @@ def main():
     tests =[]
     for i in range(100):
         tests.append(test())
-    with open("answer_associativity.txt", "w") as f:
+    with open("./out/answer_associativity.txt", "w") as f:
         f.write(str(sum(tests)/len(tests))+"\n")
     #print(sum(tests)/len(tests))
     return 0

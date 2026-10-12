@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/local/bin/python3
 import math
 
 def nyear(n,val):
@@ -11,7 +11,7 @@ def main():
         argent -=1
         argent=nyear(i,argent)
     argent -=1
-    with open("answer_banking.txt","w") as f:
+    with open("./out/answer_banking.txt","w") as f:
         f.write(str(argent)+"\n")
     return 0
 
