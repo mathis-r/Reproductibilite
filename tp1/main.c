@@ -8,7 +8,7 @@ int equals(double x, double y, double z)
     return (x + (y + z) == (x + y) + z);
 }
 
-int main(void)
+double test(void)
 {
     srand48(time(NULL));
     double compteur_vrai = 0;
@@ -21,9 +21,9 @@ int main(void)
     } else
     {
         compteur_faux++;
-        printf("%f %f %f : %f != %f\n",0.1,0.2,0.3,0.1+(0.2+0.3),(0.1+0.2)+0.3);
+        //printf("%f %f %f : %f != %f\n",0.1,0.2,0.3,0.1+(0.2+0.3),(0.1+0.2)+0.3);
     }
-    printf("%d\n",results[0]);
+    //printf("%d\n",results[0]);
 
     double pourcentage = 0;
 
@@ -39,13 +39,27 @@ int main(void)
         } else
         {
             compteur_faux++;
-            printf("%f %f %f : %f != %f\n",x,y,z, x + (y + z), (x + y) + z);
+            //printf("%f %f %f : %f != %f\n",x,y,z, x + (y + z), (x + y) + z);
         }
-        printf("%d\n",results[i]);
+        //printf("%d\n",results[i]);
     }
 
-    printf("%f\n",compteur_vrai);
+    //printf("%f\n",compteur_vrai);
     pourcentage = compteur_vrai/101;
-    printf("%d\n",results[19]);
-    printf("Résultat : %f ; nb faux : %f, nb vrai : %f\n",pourcentage, compteur_faux, compteur_vrai);
+    //printf("%d\n",results[19]);
+    //printf("Résultat : %f ; nb faux : %f, nb vrai : %f\n",pourcentage, compteur_faux, compteur_vrai);
+    return pourcentage;
+}
+
+int main()
+{
+    double tests[100] = {0};
+    double sum = 0;
+    for (int i = 1; i < 100; i++)
+    {
+        tests[i] = test();
+        sum += tests[i];
+    }
+    printf("Moyenne = %f\n", sum/100.0);
+    return 0;
 }
