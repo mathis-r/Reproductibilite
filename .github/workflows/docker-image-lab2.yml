@@ -1,20 +1,64 @@
-name: Docker Image CI
+name: Build lab images and publish answers
 
 on:
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+    branches:
+      - "**"
+
+permissions:
+  contents: write
 
 jobs:
-
-  build:
-
+  build-and-publish:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: c
+            dir: tp1et2/c
+            image: lab2-c
+          - name: python
+            dir: tp1et2/python
+            image: lab2-python
+
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image for C
-      run: docker build ./tp1et2/c --file tp1et2/c/Dockerfile --tag lab2-c:$(date +%s)
-    - name: Build the Docker image for Python
-      run: docker build ./tp1et2/python --file tp1et2/python/Dockerfile --tag lab2-python:$(date +%s)
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build Docker image (${{ matrix.name }})
+        working-directory: ${{ matrix.dir }}
+        run: docker build -t ${{ matrix.image }}:${{ github.sha }} .
+
+      - name: Prepare output directory
+        run: mkdir -p ${{ matrix.dir }}/out
+
+      - name: Run container (${{ matrix.name }})
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/${{ matrix.dir }}/out:/app/out" \
+            ${{ matrix.image }}:${{ github.sha }}
+
+      - name: Check expected files exist
+        run: |
+          ls -l ${{ matrix.dir }}/out
+          test -f "${{ matrix.dir }}/out/answer_associativity.txt"
+          test -f "${{ matrix.dir }}/out/answer_banking.txt"
+
+      - name: Commit generated answers
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add "${{ matrix.dir }}/out/answer_associativity.txt" "${{ matrix.dir }}/out/answer_banking.txt"
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update ${{ matrix.name }} answers [skip ci]"
+            git push origin HEAD:${{ github.ref_name }}
+          fi
