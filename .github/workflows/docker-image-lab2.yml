@@ -55,6 +55,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          git pull --rebase origin "${GITHUB_REF_NAME}" || true
           git add "${{ matrix.dir }}/out/answer_associativity.txt" "${{ matrix.dir }}/out/answer_banking.txt"
 
           if git diff --cached --quiet; then
