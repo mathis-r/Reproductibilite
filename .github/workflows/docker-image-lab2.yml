@@ -1,4 +1,4 @@
-name: Build lab images and publish answers
+name: Build and publish lab answers
 
 on:
   push:
@@ -9,58 +9,88 @@ permissions:
   contents: write
 
 jobs:
-  build-and-publish:
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+  python-job:
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        include:
-          - name: c
-            dir: tp1et2/c
-            image: lab2-c
-          - name: python
-            dir: tp1et2/python
-            image: lab2-python
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Build Docker image (${{ matrix.name }})
-        working-directory: ${{ matrix.dir }}
-        run: docker build -t ${{ matrix.image }}:${{ github.sha }} .
+      - name: Build Python image
+        working-directory: tp1et2/python
+        run: docker build -t lab2-python:${{ github.sha }} .
 
-      - name: Prepare output directory
-        run: mkdir -p ${{ matrix.dir }}/out
+      - name: Create output directory
+        run: mkdir -p tp1et2/python/out
 
-      - name: Run container (${{ matrix.name }})
+      - name: Run Python container
         run: |
           docker run --rm \
-            -v "${{ github.workspace }}/${{ matrix.dir }}/out:/app/out" \
-            ${{ matrix.image }}:${{ github.sha }}
+            -v "${{ github.workspace }}/tp1et2/python/out:/app/out" \
+            lab2-python:${{ github.sha }}
 
-      - name: Check expected files exist
+      - name: Check Python outputs
         run: |
-          ls -l ${{ matrix.dir }}/out
-          test -f "${{ matrix.dir }}/out/answer_associativity.txt"
-          test -f "${{ matrix.dir }}/out/answer_banking.txt"
+          ls -l tp1et2/python/out
+          test -f tp1et2/python/out/answer_associativity.txt
+          test -f tp1et2/python/out/answer_banking.txt
 
-      - name: Commit generated answers
+      - name: Commit and push Python outputs
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git pull --rebase origin "${GITHUB_REF_NAME}" || true
-          git add "${{ matrix.dir }}/out/answer_associativity.txt" "${{ matrix.dir }}/out/answer_banking.txt"
+          git add -A tp1et2/python/out
 
           if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "Update ${{ matrix.name }} answers [skip ci]"
-            git push origin HEAD:${{ github.ref_name }}
+            echo "No Python changes to commit"
+            exit 0
           fi
+
+          git commit -m "Update Python answers [skip ci]"
+        	  git pull --rebase origin "${GITHUB_REF_NAME}" || true
+          git push origin HEAD:"${GITHUB_REF_NAME}"
+
+  c-job:
+    needs: python-job
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build C image
+        working-directory: tp1et2/c
+        run: docker build -t lab2-c:${{ github.sha }} .
+
+      - name: Create output directory
+        run: mkdir -p tp1et2/c/out
+
+      - name: Run C container
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/tp1et2/c/out:/app/out" \
+            lab2-c:${{ github.sha }}
+
+      - name: Check C outputs
+        run: |
+          ls -l tp1et2/c/out
+          test -f tp1et2/c/out/answer_associativity.txt
+          test -f tp1et2/c/out/answer_banking.txt
+          test -f tp1et2/c/out/answer_associativity_llm.txt
+
+      - name: Commit and push C outputs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A tp1et2/c/out
+
+          if git diff --cached --quiet; then
+            echo "No C changes to commit"
+            exit 0
+          fi
+
+          git commit -m "Update C answers [skip ci]"
+		  git pull --rebase origin "${GITHUB_REF_NAME}" || true
+          git push origin HEAD:"${GITHUB_REF_NAME}"
