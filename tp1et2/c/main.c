@@ -3,7 +3,7 @@
 #include <time.h>
 
 int equals(double x, double y, double z) {
-  return (x + (y + z) == (x + y) + z);
+  return x * (y + z) == x * y + x * z;
 }
 
 double test(void) {
