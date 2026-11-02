@@ -10,3 +10,7 @@ add_executable(main
 add_executable(banking
         banking.c
 )
+
+add_executable(llm
+    associativity_llm.c
+)
