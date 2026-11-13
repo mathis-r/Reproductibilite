@@ -13,6 +13,7 @@ Ce dépôt contient mes travaux pratiques sur la reproductibilité logicielle et
   * `sample.py` et `sample.csv` : l'échantillonnage reproductible.
   * `assoc.py.jinja` et `generate.py` : la génération de variantes.
   * `cli.py` et `parameterized.py` : les mécanismes de variabilité par CLI et paramètres d'exécution.
+  * `experiments/` : le moteur d'exécution (`run_experiments.py`, `runner.c`) et les résultats sérialisés (`results.csv`).
 * `.github/workflows/` : les workflows d'intégration continue GitHub Actions.
 
 ---

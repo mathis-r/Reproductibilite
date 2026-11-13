@@ -91,16 +91,16 @@ Le modèle contient :
    FastMath est interdit, donc 4 choix d'optimisation possibles (aucune, O0, O2, O3).
    $$4 \times 1 \times 4 \times 3 \times 1 \times 2 \times 2 \times 4 = 768$$
 
-**Total calculé à la main** : $384 + 960 + 768 = \mathbf{2112}$ configurations valides.
+**Total calculé à la main** : $384 + 960 + 768 = 2112$ configurations valides.
 
-L'analyse avec FlamaPy confirme exactement ce nombre :
-`tp3/model.uvl: 2112 valid configurations, dead features: []`.
+Même nombre sur l'onglet 'Analysis' sur le site.
 
 ---
 
 ## Partie 5 - Échantillonnage reproductible
 
-Le nombre total de configurations est trop grand pour tout exécuter. J'ai produit un échantillon représentatif et reproductible avec `tp3/sample.py`.
+Le nombre total de configurations est trop grand pour tout exécuter.
+On produit un échantillon représentatif et reproductible avec `tp3/sample.py`.
 
 1. J'ai créé trois fichiers d'ancrage dans `tp3/configs/` pour représenter mes trois programmes :
    * `prog1_python_manual.csvconf`
@@ -112,3 +112,29 @@ Le nombre total de configurations est trop grand pour tout exécuter. J'ai produ
    ```
 
 Le fichier `tp3/sample.csv` contient 33 configurations au total (les 3 ancres en tête et 30 configurations tirées au sort). Grâce à la graine `--seed 1`, cet échantillon est strictement reproductible.
+
+---
+
+## Partie 6 - Sérialisation des résultats
+
+J'ai automatisé l'exécution de tout l'échantillon avec le script `tp3/experiments/run_experiments.py`.
+Le dossier `tp3/experiments/` isole cette chaîne d'exécution.
+
+1. **Extraction du code C** :
+   Le template du code C est dans le fichier `tp3/experiments/runner.c`.
+   Le script Python appelle `gcc` à la volée. Il applique les options d'optimisation demandées (`-O0`, `-O2`, `-O3`, `-ffast-math`).
+2. **Exécution Python** :
+   Pour Python, le script évalue les expressions avec NumPy de façon vectorisée. Il gère la simple précision (`float32`) et la double précision (`float64`).
+3. **Répétitions et reproductibilité** :
+   Chaque configuration tourne 3 fois de suite avec une graine pseudo-aléatoire contrôlée. Cela permet de mesurer la stabilité du résultat.
+4. **Sérialisation des résultats** :
+   Le script écrit chaque exécution dans `tp3/experiments/results.csv`.
+   Chaque ligne contient les facteurs de la configuration, l'identifiant du run, le pourcentage obtenu, la durée en millisecondes et l'architecture de la machine hôte.
+
+Commande pour lancer l'expérimentation :
+```bash
+tp3/.venv/bin/python tp3/experiments/run_experiments.py --sample tp3/sample.csv --output tp3/experiments/results.csv --runs 3
+```
+
+Sur 99 exécutions (33 configurations $\times$ 3 répétitions), le temps total est d'environ 3 secondes.
+Un résultat marquant apparaît tout de suite : l'option `-ffast-math` en C force le résultat à $100.0\%$, car le compilateur réécrit l'égalité mathématique lors de la compilation.
