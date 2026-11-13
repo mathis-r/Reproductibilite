@@ -159,3 +159,36 @@ Chaque job produit ses résultats en tant qu'artefact téléchargeable.
 Si je relance le workflow sur le même commit :
 * **Les pourcentages obtenus sont strictement identiques**. La graine `--seed 1` garantit le même échantillon, et les graines fixées par run dans le script assurent des tirages identiques.
 
+---
+
+## Partie 8 - Analyse des résultats
+
+On analyse les résultats dans le notebook Jupyter `tp3/experiments/analysis.ipynb`.
+Le notebook charge `results.csv` sans jamais générer de nouvelles données.
+
+### 1. Impact des facteurs de variabilité
+On entraîne un arbre de décision (`DecisionTreeRegressor`) pour hiérarchiser l'impact des facteurs :
+* **La propriété mathématique** est le facteur numéro un (environ $53\%$ de l'importance) :
+  * L'inverse multiplicatif réussit à $87.95\%$ en moyenne.
+  * L'associativité de l'addition donne $74.38\%$ en moyenne.
+  * L'associativité de la multiplication donne $65.15\%$ en moyenne.
+  * La distributivité donne seulement $55.99\%$ en moyenne.
+* **L'optimisation FastMath** en C est le deuxième facteur le plus déterminant ($31\%$ de l'importance) : elle donne systématiquement $100.0\%$.
+* **La distribution des nombres** influe sur le taux d'annulations : la distribution uniforme positive $[0, 1[$ donne $72.34\%$ en moyenne, contre $66.97\%$ pour l'intervalle avec nombres négatifs $[-1, 1]$.
+* **La précision** : la simple précision présente une variance plus forte que la double précision.
+
+### 2. Recommandations pour un résultat stable
+Pour obtenir une mesure stable et reproductible :
+1. **Augmenter les répétitions** : utiliser au moins 100 000 tirages (`N100000`). À 1 000 tirages, la variance stochastique est trop forte.
+2. **Utiliser la double précision** : préférer `double` ou `float64` pour limiter les erreurs d'arrondi.
+3. **Éviter FastMath** : compiler sans option agressive pour préserver l'arithmétique standard.
+4. **Fixer la graine aléatoire** : spécifier une graine pour garantir la reproductibilité au bit près.
+
+### 3. Explication des résultats des Labs 1 et 2
+* Au Lab 1, le programme initial en Python donnait environ $82\%$ en double précision sur $[0, 1[$.
+* Au Lab 2, le programme C du LLM utilisait de la simple précision (`float`) et l'intervalle $[-1, 1]$. La combinaison du domaine avec changement de signe et des 32 bits explique les divergences observées.
+
+### 4. Corrélation vs Causalité
+* **Corrélation** : le langage C semblait donner des valeurs différentes de Python. En réalité, le langage en lui-même n'est pas la cause. L'écart venait du choix des types (`float` 32 bits par défaut pour le LLM en C contre `float` 64 bits en Python).
+* **Causalité démontrée (FastMath)** : l'option `-ffast-math`. Elle ordonne légalement au compilateur de considérer l'addition comme associative. Le compilateur remplace l'expression d'égalité par `true` lors de la passe d'optimisation. Le résultat passe de $74\%$ à $100\%$ de façon prouvée et causale.
+

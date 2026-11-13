@@ -40,27 +40,33 @@ jobs:
       - name: Run experiments
         working-directory: tp3
         run: |
-          python experiments/run_experiments.py --sample sample.csv --output experiments/results.csv --runs 3
+          python experiments/run_experiments.py --sample sample.csv --output experiments/results_${{ matrix.os }}.csv --runs 3
+          if [ "${{ matrix.os }}" = "ubuntu-24.04" ]; then
+            cp experiments/results_${{ matrix.os }}.csv experiments/results.csv
+          fi
 
       - name: Upload results artifact
         uses: actions/upload-artifact@v4
         with:
           name: results-${{ matrix.os }}-py${{ matrix.python-version }}
-          path: tp3/experiments/results.csv
+          path: tp3/experiments/results_${{ matrix.os }}.csv
 
       - name: Commit and push results
-        if: matrix.os == 'ubuntu-24.04' && matrix.python-version == '3.12'
+        if: matrix.python-version == '3.12'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add tp3/sample.csv tp3/experiments/results.csv
+          git add tp3/sample.csv tp3/experiments/results*.csv
 
-          if git diff --cached --quiet; then
+          if git diff --staged --quiet; then
             echo "No changes to commit"
             exit 0
           fi
 
-          git commit -m "Update lab 3 results [skip ci]"
-          git pull --rebase origin "${GITHUB_REF_NAME}" || true
-          git push origin HEAD:"${GITHUB_REF_NAME}"
+          git commit -m "Update lab 3 results for ${{ matrix.os }} [skip ci]"
+          for i in 1 2 3 4 5; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin HEAD:"${GITHUB_REF_NAME}" && exit 0
+            sleep $((RANDOM % 5 + 2))
+          done
+          exit 1
