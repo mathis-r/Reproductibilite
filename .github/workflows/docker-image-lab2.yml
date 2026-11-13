@@ -34,6 +34,7 @@ jobs:
           ls -l tp1et2/python/out
           test -f tp1et2/python/out/answer_associativity.txt
           test -f tp1et2/python/out/answer_banking.txt
+          test -f tp1et2/python/out/answer_associativity_llm.txt
 
       - name: Commit and push Python outputs
         run: |
