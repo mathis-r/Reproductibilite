@@ -1,0 +1,49 @@
+features
+	VariabilityLab3 // 2112 configurations
+		mandatory
+			Property
+				alternative
+					AssocAdd
+					AssocMul
+					Distributivity
+					InverseMul
+			Precision
+				alternative
+					SinglePrecision
+					DoublePrecision
+			Repetitions
+				alternative
+					N1000
+					N10000
+					N100000
+					N1000000
+			Distribution
+				alternative
+					Uniform01
+					UniformNeg1Pos1
+					Gaussian
+			Language
+				alternative
+					C
+					Python
+			Environment
+				mandatory
+					Architecture
+						alternative
+							x86_64
+							arm64
+					RuntimeVersion
+						alternative
+							RuntimeV1
+							RuntimeV2
+				optional
+					Optimization
+						alternative
+							O0
+							O2
+							O3
+							FastMath
+
+constraints
+	FastMath => SinglePrecision
+	Optimization => !Python
