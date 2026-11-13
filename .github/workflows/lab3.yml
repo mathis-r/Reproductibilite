@@ -9,16 +9,58 @@ permissions:
   contents: write
 
 jobs:
-  run:
-    runs-on: ubuntu-24.04
+  run-experiments:
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.10", "3.14"]
+        os: [ubuntu-24.04, ubuntu-24.04-arm]
+        python-version: ["3.11", "3.12"]
+
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Run the python file
-        working-directory: tp3/
-        run: python run.py
+
+      - name: Install dependencies
+        working-directory: tp3
+        run: |
+          python -m pip install --upgrade pip
+          pip install flamapy==2.6.0 numpy
+
+      - name: Sample configurations
+        working-directory: tp3
+        run: |
+          python sample.py model.uvl --size 30 --seed 1 --include configs/*.csvconf -o sample.csv
+
+      - name: Run experiments
+        working-directory: tp3
+        run: |
+          python experiments/run_experiments.py --sample sample.csv --output experiments/results.csv --runs 3
+
+      - name: Upload results artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: tp3/experiments/results.csv
+
+      - name: Commit and push results
+        if: matrix.os == 'ubuntu-24.04' && matrix.python-version == '3.12'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add tp3/sample.csv tp3/experiments/results.csv
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "Update lab 3 results [skip ci]"
+          git pull --rebase origin "${GITHUB_REF_NAME}" || true
+          git push origin HEAD:"${GITHUB_REF_NAME}"

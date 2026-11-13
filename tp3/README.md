@@ -138,3 +138,24 @@ tp3/.venv/bin/python tp3/experiments/run_experiments.py --sample tp3/sample.csv 
 
 Sur 99 exécutions (33 configurations $\times$ 3 répétitions), le temps total est d'environ 3 secondes.
 Un résultat marquant apparaît tout de suite : l'option `-ffast-math` en C force le résultat à $100.0\%$, car le compilateur réécrit l'égalité mathématique lors de la compilation.
+
+---
+
+## Partie 7 - Automatisation avec GitHub Actions
+
+Toute l'expérimentation est automatisée dans le workflow `.github/workflows/lab3.yml`.
+
+Le workflow s'exécute automatiquement à chaque push :
+1. Il installe les dépendances Python (`flamapy` et `numpy`).
+2. Il produit l'échantillon reproductible `sample.csv` avec `sample.py` (graine fixée à 1).
+3. Il lance `tp3/experiments/run_experiments.py` pour exécuter les 33 configurations (3 répétitions chacune).
+4. Il sauvegarde et commit le fichier `tp3/experiments/results.csv` directement sur le dépôt.
+
+### Matrice d'environnements
+Le workflow utilise une matrice pour croiser deux architectures (`ubuntu-24.04` en x86_64 et `ubuntu-24.04-arm` en ARM64) avec deux versions de Python (`3.11` et `3.12`).
+Chaque job produit ses résultats en tant qu'artefact téléchargeable.
+
+### Même commit, mêmes résultats ?
+Si je relance le workflow sur le même commit :
+* **Les pourcentages obtenus sont strictement identiques**. La graine `--seed 1` garantit le même échantillon, et les graines fixées par run dans le script assurent des tirages identiques.
+
